@@ -19,7 +19,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Common
         /// <summary>
         /// Duration gap in minutes from now for which schedule for rooms will be fetched.
         /// </summary>
-        public static readonly TimeSpan DurationGapFromNow = new TimeSpan(hours: 0, minutes: 5, seconds: 0);
+        public static readonly TimeSpan DurationGapFromNow = new TimeSpan(hours: 0, minutes: 0, seconds: 0);
 
         /// <summary>
         /// Default meeting duration in minutes.
