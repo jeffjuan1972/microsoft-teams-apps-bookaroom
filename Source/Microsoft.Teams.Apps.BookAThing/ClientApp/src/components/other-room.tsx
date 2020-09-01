@@ -339,8 +339,20 @@ class OtherRoom extends React.Component<IOtherRoomProps, IState>
     /**Get list of top N rooms to display in dropdown on click. */
     getTopNRooms = async () => {
         let self = this;
-        let dateTime = moment().utc().format("YYYY-MM-DD HH:mm:ss");
-        let rooms = { Query: "", Duration: 30, TimeZone: self.state.selectedTimeZone, Time: dateTime, IsScheduleRequired: true };
+        let timeStart = moment(new Date(this.state.meetingStart)).utc()
+        
+        let timeStartFmt = timeStart.format("YYYY-MM-DD HH:mm:ss");
+        console.log("meeting start:"+timeStartFmt);
+        
+        let timeEnd =  moment(new Date(this.state.meetingEnd)).utc();
+        let timeEndFmt = timeEnd.format("YYYY-MM-DD HH:mm:ss");
+        console.log("meeting end:"+timeEndFmt);
+
+        let meetingDuration = timeEnd.diff(timeStart,"minutes");
+        console.log("meeting duration:"+meetingDuration);
+
+
+        let rooms = { Query: "", Duration: meetingDuration, TimeZone: self.state.selectedTimeZone, Time: timeStartFmt, IsScheduleRequired: true };
         const res = await fetch("/api/MeetingApi/TopNRoomsAsync", {
             method: "POST",
             headers: {
