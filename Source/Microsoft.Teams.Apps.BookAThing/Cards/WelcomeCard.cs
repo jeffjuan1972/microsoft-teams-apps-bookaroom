@@ -94,7 +94,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Cards
                     },
                     new AdaptiveSubmitAction
                     {
-                        Title = Strings.BookAMeetingNow,
+                        Title = Strings.BookRoomNow,
                         Data = new AdaptiveSubmitActionData
                         {
                             Msteams = new CardAction
