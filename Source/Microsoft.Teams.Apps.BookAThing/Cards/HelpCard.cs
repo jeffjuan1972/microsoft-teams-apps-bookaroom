@@ -28,6 +28,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Cards
             buttons.AddRange(new List<CardAction>
             {
                 new CardAction(ActionTypes.MessageBack, Strings.BookRoom, text: BotCommands.BookAMeeting, displayText: Strings.BookRoom),
+                new CardAction(ActionTypes.MessageBack, Strings.BookRoomNow, text: BotCommands.BookRoomNow, displayText: Strings.BookRoomNow),
                 new TaskModuleAction(Strings.ManageFavorites, new { data = JsonConvert.SerializeObject(new AdaptiveTaskModuleCardAction { Text = BotCommands.ShowFavoriteTaskModule }) }),
             });
 

@@ -137,6 +137,10 @@
     <value>Book room</value>
     <comment>Book room button text</comment>
   </data>
+   <data name="BookRoomNow" xml:space="preserve">
+    <value>Book room now</value>
+    <comment>Book room now button text</comment>
+  </data>
   <data name="BuildingName" xml:space="preserve">
     <value>Building name</value>
     <comment>Building name label text</comment>

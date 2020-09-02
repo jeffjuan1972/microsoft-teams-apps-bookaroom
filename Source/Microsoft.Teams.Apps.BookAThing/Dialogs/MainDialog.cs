@@ -169,6 +169,10 @@ namespace Microsoft.Teams.Apps.BookAThing.Dialogs
                             await this.ShowRoomsAsync(stepContext, tokenResponse, false).ConfigureAwait(false);
                             break;
 
+                        case BotCommands.BookAMeetingNow:
+                            await this.ShowRoomsAsync(stepContext, tokenResponse, false).ConfigureAwait(false);
+                            break;
+
                         case BotCommands.RefreshList:
                             await this.ShowRoomsAsync(stepContext, tokenResponse, true).ConfigureAwait(false);
                             break;

@@ -284,6 +284,10 @@ namespace Microsoft.Teams.Apps.BookAThing.Bots
                     activityReferenceId = postedValues.ActivityReferenceId;
                     return this.GetTaskModuleResponse(string.Format(CultureInfo.InvariantCulture, "{0}/Meeting/OtherRoom?telemetry={1}&token={2}&replyTo={3}", this.appBaseUri, this.instrumentationKey, token, activityReferenceId), Strings.AnotherRoomTaskModuleSubtitle);
 
+                case BotCommands.BookAMeetingNow:
+                    activityReferenceId = postedValues.ActivityReferenceId;
+                    return this.GetTaskModuleResponse(string.Format(CultureInfo.InvariantCulture, "{0}/Meeting/OtherRoomNow?telemetry={1}&token={2}&replyTo={3}", this.appBaseUri, this.instrumentationKey, token, activityReferenceId), Strings.AnotherRoomTaskModuleSubtitle);
+
                 default:
                     var reply = MessageFactory.Text(Strings.CommandNotRecognized.Replace("{command}", command, StringComparison.OrdinalIgnoreCase));
                     await turnContext.SendActivityAsync(reply).ConfigureAwait(false);

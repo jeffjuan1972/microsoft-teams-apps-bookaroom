@@ -9,7 +9,7 @@ export const Unavailable = "Unavailable";
 export const ErrorMessageRedColor = "#E74C3C";
 export const DefaultTheme = "default";
 export const DarkTheme = "dark";
-export const DurationArray = [{ label: "30 min", value: 30, key: 30 }, { label: "60 min", value: 60, key: 60 }, { label: "90 min", value: 90, key: 90 }];
+export const DurationArray = [{ label: "30 min", value: 30, key: 30 }, { label: "60 min", value: 60, key: 60 }, { label: "90 min", value: 90, key: 90 },, { label: "120 min", value: 120, key: 120 }];
 
 //Theme style and colors
 export const DefaultStyles = {

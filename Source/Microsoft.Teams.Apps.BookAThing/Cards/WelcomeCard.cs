@@ -94,6 +94,18 @@ namespace Microsoft.Teams.Apps.BookAThing.Cards
                     },
                     new AdaptiveSubmitAction
                     {
+                        Title = Strings.BookAMeetingNow,
+                        Data = new AdaptiveSubmitActionData
+                        {
+                            Msteams = new CardAction
+                            {
+                                Type = ActionTypes.MessageBack,
+                                Text = BotCommands.BookAMeetingNow,
+                            },
+                        },
+                    },
+                    new AdaptiveSubmitAction
+                    {
                         Title = Strings.ManageFavorites,
                         Data = new AdaptiveSubmitActionData
                         {

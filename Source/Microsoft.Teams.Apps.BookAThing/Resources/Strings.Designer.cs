@@ -113,6 +113,15 @@ namespace Microsoft.Teams.Apps.BookAThing.Resources {
                 return ResourceManager.GetString("BookRoom", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Book room.
+        /// </summary>
+        public static string BookRoomNow {
+            get {
+                return ResourceManager.GetString("BookRoomNow", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Building name.

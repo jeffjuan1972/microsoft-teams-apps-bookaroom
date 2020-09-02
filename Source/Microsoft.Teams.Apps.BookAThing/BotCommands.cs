@@ -15,6 +15,11 @@ namespace Microsoft.Teams.Apps.BookAThing
         public const string BookAMeeting = "BOOK ROOM";
 
         /// <summary>
+        /// Book room bot command which will show user favorites list card.
+        /// </summary>
+        public const string BookAMeetingNow = "BOOK ROOM NOW";
+
+        /// <summary>
         /// Create meeting command.
         /// </summary>
         public const string CreateMeeting = "CREATE MEETING";

@@ -17,7 +17,7 @@ import { createBrowserHistory } from "history";
 let moment = require("moment");
 import * as timezone from 'moment-timezone';
 const browserHistory = createBrowserHistory({ basename: '' });
-interface IOtherRoomProps { }
+interface IOtherRoomNowProps { }
 let reactPlugin = new ReactPlugin();
 
 /** 
@@ -67,7 +67,7 @@ interface IErrorResponse {
 /** 
  *  OtherRoom component.
 **/
-class OtherRoom extends React.Component<IOtherRoomProps, IState>
+class OtherRoomNow extends React.Component<IOtherRoomNowProps, IState>
 {
     /**Instrumentation key. */
     telemetry?: any = null;
@@ -89,7 +89,7 @@ class OtherRoom extends React.Component<IOtherRoomProps, IState>
      * Constructor to initialize component.
      * @param props Props for component.
      */
-    constructor(props: IOtherRoomProps) {
+    constructor(props: IOtherRoomNowProps) {
         super(props);
         this.state = {
             duration: Constants.DurationArray,
@@ -688,6 +688,11 @@ handleMeetingEndChange = (e:any) => {
                             <Flex gap="gap.small">
                                 <Text weight="bold" content={self.state.resourceStrings.MeetingLength} />
                             </Flex>
+                            <Flex gap="gap.small">
+                                <Flex.Item grow>
+                                    {self.renderDurationDropdown()}
+                                </Flex.Item>
+                            </Flex>
                             <Flex style={{ marginTop: "1rem" }}>
                                 <Text weight="bold" content="Start Time" />
                             </Flex>
@@ -743,4 +748,4 @@ handleMeetingEndChange = (e:any) => {
     }
 }
 
-export default withAITracking(reactPlugin, OtherRoom);
+export default withAITracking(reactPlugin, OtherRoomNow);
