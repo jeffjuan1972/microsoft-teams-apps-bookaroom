@@ -29,5 +29,10 @@ namespace Microsoft.Teams.Apps.BookAThing.Controllers
         {
             return this.View();
         }
+
+         public ActionResult OtherRoomNow()
+        {
+            return this.View();
+        }
     }
 }

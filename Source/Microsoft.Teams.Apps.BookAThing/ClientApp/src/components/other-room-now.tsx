@@ -17,7 +17,7 @@ import { createBrowserHistory } from "history";
 let moment = require("moment");
 import * as timezone from 'moment-timezone';
 const browserHistory = createBrowserHistory({ basename: '' });
-interface IOtherRoomNowProps { }
+interface IOtherRoomProps { }
 let reactPlugin = new ReactPlugin();
 
 /** 
@@ -29,9 +29,7 @@ interface IState {
     /**Selected room object from dropdown. */
     selectedRoom: any,
     /**Selected duration object from dropdown. */
-    selectedDuration: any,
-    meetingStart: any,
-    meetingEnd: any,
+    selectedDuration: any
     /**Loading icon visibility. */
     loading: boolean,
     /**Search query. */
@@ -67,7 +65,7 @@ interface IErrorResponse {
 /** 
  *  OtherRoom component.
 **/
-class OtherRoomNow extends React.Component<IOtherRoomNowProps, IState>
+class OtherRoom extends React.Component<IOtherRoomProps, IState>
 {
     /**Instrumentation key. */
     telemetry?: any = null;
@@ -89,14 +87,12 @@ class OtherRoomNow extends React.Component<IOtherRoomNowProps, IState>
      * Constructor to initialize component.
      * @param props Props for component.
      */
-    constructor(props: IOtherRoomNowProps) {
+    constructor(props: IOtherRoomProps) {
         super(props);
         this.state = {
             duration: Constants.DurationArray,
             selectedRoom: null,
             selectedDuration: null,
-            meetingStart: null,
-            meetingEnd: null,
             loading: false,
             searchQuery: undefined,
             message: null,
@@ -207,7 +203,7 @@ class OtherRoomNow extends React.Component<IOtherRoomNowProps, IState>
         }
         else {
             this.appInsights.trackTrace({ message: `'GetResourceStringsAsync' - Request failed:${resourceStrings.status}`, severityLevel: SeverityLevel.Warning });
-            this.setMessage("Something went wrong and I canï¿½t do that right now. Try again in a few minutes.", Constants.ErrorMessageRedColor, false);
+            this.setMessage("Something went wrong and I can’t do that right now. Try again in a few minutes.", Constants.ErrorMessageRedColor, false);
         }
     }
 
@@ -339,20 +335,8 @@ class OtherRoomNow extends React.Component<IOtherRoomNowProps, IState>
     /**Get list of top N rooms to display in dropdown on click. */
     getTopNRooms = async () => {
         let self = this;
-        let timeStart = moment(new Date(this.state.meetingStart)).utc()
-        
-        let timeStartFmt = timeStart.format("YYYY-MM-DD HH:mm:ss");
-        console.log("meeting start:"+timeStartFmt);
-        
-        let timeEnd =  moment(new Date(this.state.meetingEnd)).utc();
-        let timeEndFmt = timeEnd.format("YYYY-MM-DD HH:mm:ss");
-        console.log("meeting end:"+timeEndFmt);
-
-        let meetingDuration = timeEnd.diff(timeStart,"minutes");
-        console.log("meeting duration:"+meetingDuration);
-
-
-        let rooms = { Query: "", Duration: meetingDuration, TimeZone: self.state.selectedTimeZone, Time: timeStartFmt, IsScheduleRequired: true };
+        let dateTime = moment().utc().format("YYYY-MM-DD HH:mm:ss");
+        let rooms = { Query: "", Duration: 30, TimeZone: self.state.selectedTimeZone, Time: dateTime, IsScheduleRequired: true };
         const res = await fetch("/api/MeetingApi/TopNRoomsAsync", {
             method: "POST",
             headers: {
@@ -393,21 +377,10 @@ class OtherRoomNow extends React.Component<IOtherRoomNowProps, IState>
      */
     filterRooms = async (inputValue: string) => {
         let self = this;
-        
-        let timeStart = moment(new Date(this.state.meetingStart)).utc()
-        
-        let timeStartFmt = timeStart.format("YYYY-MM-DD HH:mm:ss");
-        console.log("meeting start:"+timeStartFmt);
-        
-        let timeEnd =  moment(new Date(this.state.meetingEnd)).utc();
-        let timeEndFmt = timeEnd.format("YYYY-MM-DD HH:mm:ss");
-        console.log("meeting end:"+timeEndFmt);
-
-        let meetingDuration = timeEnd.diff(timeStart,"minutes");
-        console.log("meeting duration:"+meetingDuration);
+        let dateTime = moment().utc().format("YYYY-MM-DD HH:mm:ss");
 
         if (inputValue) {
-            let rooms = { Query: inputValue, Duration: meetingDuration, TimeZone: self.state.selectedTimeZone, Time: timeStartFmt, IsScheduleRequired: true };
+            let rooms = { Query: inputValue, Duration: self.state.selectedDuration.value, TimeZone: self.state.selectedTimeZone, Time: dateTime, IsScheduleRequired: true };
             const res = await fetch("/api/MeetingApi/SearchRoomAsync", {
                 method: "POST",
                 headers: {
@@ -458,26 +431,6 @@ class OtherRoomNow extends React.Component<IOtherRoomNowProps, IState>
         )
     }
 
-    /** Render duration dropdown. */
-    renderMeetingStart() {
-        return (
-            <div style={{ width: "inherit" }}>
-                 <input type="datetime-local" value={this.state.meetingStart}
-                    onChange={this.handleMeetingStartChange} style={{width:"100%",height:"38px",borderWidth:"0px",backgroundColor: "rgb(243, 242, 241)", marginTop:"10px",textIndent:"5px"}}></input>
-            </div>
-        )
-    }
-
-    /** Render duration dropdown. */
-    renderMeetingEnd() {
-        return (
-            <div style={{ width: "inherit" }}>
-                <input type="datetime-local" value={this.state.meetingEnd}
-                    onChange={this.handleMeetingEndChange} style={{width:"100%",height:"38px",borderWidth:"0px",backgroundColor: "rgb(243, 242, 241)", marginTop:"10px",textIndent:"5px"}}></input>
-            </div>
-        )
-    }
-
     /** Render rooms dropdown. */
     renderRoomsDropdown() {
         const Option = (props: any) => {
@@ -490,19 +443,19 @@ class OtherRoomNow extends React.Component<IOtherRoomNowProps, IState>
         };
 
         return (
-                <div style={{ width: "inherit" }}>
-                    <AsyncSelect
-                        isDisabled={this.state.meetingStart !== null && this.state.meetingEnd !== null && this.state.selectedTimeZone !== null ? false : true}
-                        defaultOptions={this.state.topFiveRooms}
-                        styles={this.themeStyle}
-                        placeholder={this.state.resourceStrings.SearchRoomDropdownPlaceholder}
-                        components={{ Option, IndicatorSeparator: () => null }}
-                        loadOptions={this.promiseOptions.bind(this)}
-                        value={this.state.selectedRoom}
-                        onChange={this.handleRoomChange}
-                        theme={this.themeColor}
-                    />
-                </div>
+            <div style={{ width: "inherit" }}>
+                <AsyncSelect
+                    isDisabled={this.state.selectedDuration !== null && this.state.selectedTimeZone !== null ? false : true}
+                    defaultOptions={this.state.topFiveRooms}
+                    styles={this.themeStyle}
+                    placeholder={this.state.resourceStrings.SearchRoomDropdownPlaceholder}
+                    components={{ Option, IndicatorSeparator: () => null }}
+                    loadOptions={this.promiseOptions.bind(this)}
+                    value={this.state.selectedRoom}
+                    onChange={this.handleRoomChange}
+                    theme={this.themeColor}
+                />
+            </div>
         )
     }
 
@@ -512,7 +465,7 @@ class OtherRoomNow extends React.Component<IOtherRoomNowProps, IState>
      */
     promiseOptions = (inputValue: string) =>
         new Promise(async resolve => {
-                    resolve(this.filterRooms(inputValue));
+            resolve(this.filterRooms(inputValue));
         });
 
     /**
@@ -520,23 +473,15 @@ class OtherRoomNow extends React.Component<IOtherRoomNowProps, IState>
      * @param optionSelected Selected room.
      */
     handleRoomChange = (optionSelected: any) => {
-                    this.setState({ selectedRoom: optionSelected, showMessage: false })
-                }
+        this.setState({ selectedRoom: optionSelected, showMessage: false })
+    }
 
     /**
      * Event called after selecting duration.
      * @param optionSelected Selected duration.
      */
     handleDurationChange = (optionSelected: any) => {
-                    this.setState({ selectedDuration: optionSelected });
-    }
-
-handleMeetingStartChange = (e:any) => {
-                    this.setState({ meetingStart: e.target.value });
-    }
-
-handleMeetingEndChange = (e:any) => {
-                    this.setState({ meetingEnd: e.target.value });
+        this.setState({ selectedDuration: optionSelected });
     }
 
     /**
@@ -545,16 +490,16 @@ handleMeetingEndChange = (e:any) => {
      * @param data Data props for dropdown.
      */
     handleTimezonSelectionChange = (event: React.SyntheticEvent<HTMLElement>, data?: any) => {
-                    this.setState({ selectedTimeZone: data.value, showMessage: false });
+        this.setState({ selectedTimeZone: data.value, showMessage: false });
         let tzResult = this.state.supportedTimeZones.find(function (tz) { return tz === data.value });
 
         if (tzResult) {
-                        this.setState({ selectedTimeZone: data.value, showMessage: false });
+            this.setState({ selectedTimeZone: data.value, showMessage: false });
             this.saveUserTimeZone(data.value);
             this.getTopNRooms();
         }
         else {
-                        this.setMessage(this.state.resourceStrings.TimezoneNotSupported, Constants.ErrorMessageRedColor, false);
+            this.setMessage(this.state.resourceStrings.TimezoneNotSupported, Constants.ErrorMessageRedColor, false);
         }
     }
 
@@ -563,35 +508,23 @@ handleMeetingEndChange = (e:any) => {
      * @param e Dropdown sythetic event object.
      * @param {open}' Boolean indicating if dropdown is opened or closed.
      */
-    handleOpenChange = (e: any, {open}: any) => {
+    handleOpenChange = (e: any, { open }: any) => {
         if (open && this.state.supportedTimeZones.length == 0) {
-                        this.getSupportedTimeZones();
+            this.getSupportedTimeZones();
         }
     }
 
     /** Submit selection and create meeting. */
     submit = async () => {
-                        this.appInsights.trackTrace({ message: `User ${this.userObjectIdentifier} initiated meeting creation` });
-        if (this.state.meetingStart !== null && this.state.meetingEnd !== null && this.state.selectedRoom !== null) {
-                        let selectedRoom = this.state.selectedRoom;
+        this.appInsights.trackTrace({ message: `User ${this.userObjectIdentifier} initiated meeting creation` });
+        if (this.state.selectedDuration !== null && this.state.selectedRoom !== null) {
+            let selectedRoom = this.state.selectedRoom;
             if (selectedRoom.Status === Constants.Available) {
-                        this.setState({ loading: true });
-                
-                        let timeStart = moment(new Date(this.state.meetingStart)).utc()
-        
-                        let timeStartFmt = timeStart.format("YYYY-MM-DD HH:mm:ss");
-                        console.log("meeting start:"+timeStartFmt);
-                        
-                        let timeEnd =  moment(new Date(this.state.meetingEnd)).utc();
-                        let timeEndFmt = timeEnd.format("YYYY-MM-DD HH:mm:ss");
-                        console.log("meeting end:"+timeEndFmt);
-                
-                        let meetingDuration = timeEnd.diff(timeStart,"minutes");
-                        console.log("meeting duration:"+meetingDuration);
-
-                let meeting = {RoomName: selectedRoom.RoomName, RoomEmail: selectedRoom.RowKey, BuildingName: selectedRoom.BuildingName, Duration: meetingDuration, TimeZone: this.state.selectedTimeZone, Time: timeStartFmt, IsFavourite: false };
+                this.setState({ loading: true });
+                let dateTime = moment().utc().format("YYYY-MM-DD HH:mm:ss");
+                let meeting = { RoomName: selectedRoom.RoomName, RoomEmail: selectedRoom.RowKey, BuildingName: selectedRoom.BuildingName, Duration: parseInt(this.state.selectedDuration.value), TimeZone: this.state.selectedTimeZone, Time: dateTime, IsFavourite: false };
                 const res = await fetch("/api/MeetingApi/CreateMeetingAsync", {
-                        method: "POST",
+                    method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": "Bearer " + this.token
@@ -610,13 +543,13 @@ handleMeetingEndChange = (e:any) => {
                         })
                     }
 
-                    this.setState({authorized: false, loading: false });
+                    this.setState({ authorized: false, loading: false });
                 }
                 else if (res.status === 200) {
-                        this.appInsights.trackEvent({ name: `Meeting created` }, { User: this.userObjectIdentifier, Room: selectedRoom.RowKey });
+                    this.appInsights.trackEvent({ name: `Meeting created` }, { User: this.userObjectIdentifier, Room: selectedRoom.RowKey });
                     let response = await res.json();
                     if (response !== null) {
-                        let toBot = {MeetingId: response.id, WebLink: response.webLink, RoomName: selectedRoom.RoomName, RoomEmail: selectedRoom.RowKey, BuildingName: selectedRoom.BuildingName, StartDateTime: response.start.timeZone, EndDateTime: response.end.timeZone, Text: "meeting from task module", isFavourite: false, replyTo: this.replyTo, BuildingEmail: selectedRoom.PartitionKey };
+                        let toBot = { MeetingId: response.id, WebLink: response.webLink, RoomName: selectedRoom.RoomName, RoomEmail: selectedRoom.RowKey, BuildingName: selectedRoom.BuildingName, StartDateTime: response.start.timeZone, EndDateTime: response.end.timeZone, Text: "meeting from task module", isFavourite: false, replyTo: this.replyTo, BuildingEmail: selectedRoom.PartitionKey };
                         microsoftTeams.tasks.submitTask(toBot);
                     }
                     else {
@@ -624,16 +557,16 @@ handleMeetingEndChange = (e:any) => {
                     }
                 }
                 else {
-                        this.appInsights.trackTrace({ message: `'CreateMeetingAsync' - Request failed:${res.status}`, severityLevel: SeverityLevel.Warning });
+                    this.appInsights.trackTrace({ message: `'CreateMeetingAsync' - Request failed:${res.status}`, severityLevel: SeverityLevel.Warning });
                     this.setMessage(this.state.resourceStrings.ExceptionResponse, Constants.ErrorMessageRedColor, false);
                 }
             }
             else {
-                        this.setMessage(this.state.resourceStrings.RoomUnavailable, Constants.ErrorMessageRedColor, false);
+                this.setMessage(this.state.resourceStrings.RoomUnavailable, Constants.ErrorMessageRedColor, false);
             }
         }
         else {
-                        this.setMessage(this.state.resourceStrings.SelectDurationRoom, Constants.ErrorMessageRedColor, false);
+            this.setMessage(this.state.resourceStrings.SelectDurationRoom, Constants.ErrorMessageRedColor, false);
         }
     }
 
@@ -662,7 +595,7 @@ handleMeetingEndChange = (e:any) => {
 
     /** Render function. */
     render() {
-                        let self = this;
+        let self = this;
         const checkAuthAndRender = function () {
             if (self.state.authorized === true) {
                 return (
@@ -694,22 +627,6 @@ handleMeetingEndChange = (e:any) => {
                                 </Flex.Item>
                             </Flex>
                             <Flex style={{ marginTop: "1rem" }}>
-                                <Text weight="bold" content="Start Time" />
-                            </Flex>
-                            <Flex gap="gap.small">
-                                <Flex.Item grow>
-                                    {self.renderMeetingStart()}
-                                </Flex.Item>
-                            </Flex>
-                            <Flex style={{ marginTop: "1rem" }}>
-                                <Text weight="bold" content="End Time" />
-                            </Flex>
-                            <Flex gap="gap.small">
-                                <Flex.Item grow>
-                                    {self.renderMeetingEnd()}
-                                </Flex.Item>
-                            </Flex>
-                            <Flex style={{ marginTop: "1rem" }}>
                                 <Text weight="bold" content={self.state.resourceStrings.SearchRoom} />
                             </Flex>
                             <Flex gap="gap.small">
@@ -722,7 +639,7 @@ handleMeetingEndChange = (e:any) => {
                                     <Flex.Item grow>
                                         {self.showError()}
                                     </Flex.Item>
-                                    <Button loading={self.state.loading} primary disabled={self.state.selectedRoom === null || (self.state.selectedRoom === null && self.state.meetingStart === null && self.state.meetingEnd === null) || self.state.loading === true} onClick={() => self.submit()} content={self.state.resourceStrings.BookRoom} />
+                                    <Button loading={self.state.loading} primary disabled={self.state.selectedRoom === null || (self.state.selectedRoom === null && self.state.selectedDuration === null) || self.state.loading === true} onClick={() => self.submit()} content={self.state.resourceStrings.BookRoom} />
                                 </Flex>
                             </div>
                         </div>
@@ -748,4 +665,4 @@ handleMeetingEndChange = (e:any) => {
     }
 }
 
-export default withAITracking(reactPlugin, OtherRoomNow);
+export default withAITracking(reactPlugin, OtherRoom);
