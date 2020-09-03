@@ -36,6 +36,10 @@
           "commands": [
             {
               "title": "Book room",
+              "description": "Schedule one of your favorite rooms"
+            },
+            {
+              "title": "Book room now",
               "description": "Schedule one of your favorite rooms for 30 minutes (default)"
             },
             {

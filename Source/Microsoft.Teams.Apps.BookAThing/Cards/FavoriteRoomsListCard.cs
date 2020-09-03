@@ -116,6 +116,9 @@ namespace Microsoft.Teams.Apps.BookAThing.Cards
             CardAction otherRoomButton = new TaskModuleAction(Strings.OtherRooms, new { data = JsonConvert.SerializeObject(new AdaptiveTaskModuleCardAction { Text = BotCommands.ShowOtherRoomsTaskModule, ActivityReferenceId = activityReferenceId }) });
             card.Buttons.Add(otherRoomButton);
 
+            CardAction bookRoomNowButton = new TaskModuleAction(Strings.BookRoomNow, new { data = JsonConvert.SerializeObject(new AdaptiveTaskModuleCardAction { Text = BotCommands.BookAMeetingNow, ActivityReferenceId = activityReferenceId }) });
+            card.Buttons.Add(bookRoomNowButton);
+
             if (rooms?.Schedules.Count > 0)
             {
                 CardAction refreshListButton = new CardAction

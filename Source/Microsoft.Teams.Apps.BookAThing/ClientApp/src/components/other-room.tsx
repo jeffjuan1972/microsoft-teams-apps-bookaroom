@@ -685,9 +685,6 @@ handleMeetingEndChange = (e:any) => {
                                     />
                                 </Flex.Item>
                             </Flex>
-                            <Flex gap="gap.small">
-                                <Text weight="bold" content={self.state.resourceStrings.MeetingLength} />
-                            </Flex>
                             <Flex style={{ marginTop: "1rem" }}>
                                 <Text weight="bold" content="Start Time" />
                             </Flex>

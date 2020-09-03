@@ -435,7 +435,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Dialogs
             var startDateTime = TimeZoneInfo.ConvertTimeFromUtc(startUTCDateTime, TimeZoneInfo.FindSystemTimeZoneById(userConfiguration.WindowsTimezone));
             var endDateTime = TimeZoneInfo.ConvertTimeFromUtc(endUTCDateTime, TimeZoneInfo.FindSystemTimeZoneById(userConfiguration.WindowsTimezone));
 
-            if (currentDateTime.Subtract(startDateTime).TotalMinutes > Constants.DurationGapFromNow.Minutes)
+            if (currentDateTime.Subtract(startDateTime).TotalMinutes > 5)
             {
                 await this.RefreshFavoriteCardAsync(stepContext).ConfigureAwait(false);
                 await stepContext.Context.SendActivityAsync(MessageFactory.Text(Strings.Expired), cancellationToken).ConfigureAwait(false);
