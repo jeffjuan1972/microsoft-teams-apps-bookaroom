@@ -114,14 +114,14 @@ namespace Microsoft.Teams.Apps.BookAThing.Service
         public async Task<List<MeetingRoomEntity>> FindRooms(string token, string address)
         {
             List<MeetingRoomEntity> rooms = await FindAllRooms(token);
-            return rooms.Where(rooms => rooms.RoomEmail == address).ToList();
+            return rooms.Where(room => room.RoomEmail == address).ToList();
         }
 
 
         public async Task<List<MeetingRoomEntity>> FilterRooms(string token, string query)
         {
             List<MeetingRoomEntity> rooms = await FindAllRooms(token);
-            return rooms.Where(rooms => rooms.RoomName.Contains(query)).ToList();
+            return rooms.Where(room => room.RoomName.Contains(query)).ToList();
         }
     }
 }
