@@ -24,6 +24,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Controllers
     using Microsoft.Teams.Apps.BookAThing.Models.TableEntities;
     using Microsoft.Teams.Apps.BookAThing.Providers.Storage;
     using Microsoft.Teams.Apps.BookAThing.Resources;
+    using Microsoft.Teams.Apps.BookAThing.Service;
     using TimeZoneConverter;
 
     /// <summary>
@@ -43,11 +44,6 @@ namespace Microsoft.Teams.Apps.BookAThing.Controllers
         /// Unauthorized error message response in case of user sign in failure.
         /// </summary>
         private const string SignInErrorCode = "signinRequired";
-
-        /// <summary>
-        /// Search service for searching room/building as per user input.
-        /// </summary>
-        private readonly ISearchService searchService;
 
         /// <summary>
         /// Telemetry client to log event and errors.
@@ -70,11 +66,6 @@ namespace Microsoft.Teams.Apps.BookAThing.Controllers
         private readonly IFavoriteStorageProvider favoriteStorageProvider;
 
         /// <summary>
-        /// Storage provider to perform fetch operation on RoomCollection table.
-        /// </summary>
-        private readonly IRoomCollectionStorageProvider roomCollectionStorageProvider;
-
-        /// <summary>
         /// Storage provider to perform fetch operation on UserConfiguration table.
         /// </summary>
         private readonly IUserConfigurationStorageProvider userConfigurationStorageProvider;
@@ -83,6 +74,8 @@ namespace Microsoft.Teams.Apps.BookAThing.Controllers
         /// Provider to get user specific data from Graph API.
         /// </summary>
         private readonly IUserConfigurationProvider userConfigurationProvider;
+
+        private readonly IExchangeService exchangeService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MeetingApiController"/> class.
@@ -95,16 +88,15 @@ namespace Microsoft.Teams.Apps.BookAThing.Controllers
         /// <param name="meetingHelper">Helper class which exposes methods required for meeting creation.</param>
         /// <param name="userConfigurationStorageProvider">Storage provider to perform fetch operation on UserConfiguration table.</param>
         /// <param name="userConfigurationProvider">Provider to get user specific data from Graph API.</param>
-        public MeetingApiController(IFavoriteStorageProvider favoriteStorageProvider, IRoomCollectionStorageProvider roomCollectionStorageProvider, ISearchService searchService, TelemetryClient telemetryClient, ITokenHelper tokenHelper, IMeetingHelper meetingHelper, IUserConfigurationStorageProvider userConfigurationStorageProvider, IUserConfigurationProvider userConfigurationProvider)
+        public MeetingApiController(IFavoriteStorageProvider favoriteStorageProvider, TelemetryClient telemetryClient, ITokenHelper tokenHelper, IMeetingHelper meetingHelper, IUserConfigurationStorageProvider userConfigurationStorageProvider, IUserConfigurationProvider userConfigurationProvider, IExchangeService exchangeService)
         {
             this.favoriteStorageProvider = favoriteStorageProvider;
-            this.roomCollectionStorageProvider = roomCollectionStorageProvider;
-            this.searchService = searchService;
             this.telemetryClient = telemetryClient;
             this.tokenHelper = tokenHelper;
             this.meetingHelper = meetingHelper;
             this.userConfigurationStorageProvider = userConfigurationStorageProvider;
             this.userConfigurationProvider = userConfigurationProvider;
+            this.exchangeService = exchangeService;
         }
 
         /// <summary>
@@ -154,7 +146,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Controllers
         /// <param name="configuration">User configuration object.</param>
         /// <returns>Returns HTTP ok status code for successful operation.</returns>
         [HttpPost]
-        public async Task<IActionResult> SaveTimeZoneAsync([FromBody]UserConfigurationEntity configuration)
+        public async Task<IActionResult> SaveTimeZoneAsync([FromBody] UserConfigurationEntity configuration)
         {
             if (configuration == null)
             {
@@ -227,7 +219,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Controllers
                 }
 
                 var userFavoriteRooms = await this.favoriteStorageProvider.GetAsync(claims.UserObjectIdentifer).ConfigureAwait(false);
-                userFavoriteRooms = await this.meetingHelper.FilterFavoriteRoomsAsync(userFavoriteRooms?.ToList()).ConfigureAwait(false);
+                userFavoriteRooms = await this.meetingHelper.FilterFavoriteRoomsAsync(token, userFavoriteRooms?.ToList()).ConfigureAwait(false);
                 return this.Ok(userFavoriteRooms);
             }
             catch (Exception ex)
@@ -243,7 +235,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Controllers
         /// <param name="search">Schedule object.</param>
         /// <returns>Returns list of rooms.</returns>
         [HttpPost]
-        public async Task<IActionResult> SearchRoomAsync([FromBody]ScheduleSearch search)
+        public async Task<IActionResult> SearchRoomAsync([FromBody] ScheduleSearch search)
         {
             var searchedRooms = new List<SearchResult>();
             if (search == null)
@@ -269,7 +261,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Controllers
                          });
                 }
 
-                var searchServiceResults = await this.searchService.SearchRoomsAsync(search.Query).ConfigureAwait(false);
+                var searchServiceResults = await this.exchangeService.FilterRooms(token,search.Query).ConfigureAwait(false);
                 if (searchServiceResults == null)
                 {
                     return this.StatusCode(StatusCodes.Status500InternalServerError);
@@ -328,7 +320,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Controllers
         /// <param name="search">Schedule search object.</param>
         /// <returns>Returns list of rooms.</returns>
         [HttpPost]
-        public async Task<IActionResult> TopNRoomsAsync([FromBody]ScheduleSearch search)
+        public async Task<IActionResult> TopNRoomsAsync([FromBody] ScheduleSearch search)
         {
             if (search == null)
             {
@@ -351,7 +343,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Controllers
                         });
                 }
 
-                var allRooms = await this.roomCollectionStorageProvider.GetNRoomsAsync(InitialRoomCount).ConfigureAwait(false);
+                var allRooms = await this.exchangeService.FindAllRooms(token).ConfigureAwait(false);
                 if (allRooms == null)
                 {
                     return this.StatusCode(StatusCodes.Status500InternalServerError, "Unable to fetch rooms from storage");
@@ -410,7 +402,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Controllers
         /// <param name="rooms">List of rooms.</param>
         /// <returns>Returns HTTP ok status code for successful operation.</returns>
         [HttpPost]
-        public async Task<IActionResult> SubmitFavoritesAsync([FromBody]IList<UserFavoriteRoomEntity> rooms)
+        public async Task<IActionResult> SubmitFavoritesAsync([FromBody] IList<UserFavoriteRoomEntity> rooms)
         {
             if (rooms == null)
             {
@@ -460,7 +452,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Controllers
         /// <param name="meeting">Event object which will be sent to graph API.</param>
         /// <returns>Returns response receieved from Graph API containing Meeting Id, timing etc.</returns>
         [HttpPost]
-        public async Task<ActionResult<CreateEventResponse>> CreateMeetingAsync([FromBody]CreateEvent meeting)
+        public async Task<ActionResult<CreateEventResponse>> CreateMeetingAsync([FromBody] CreateEvent meeting)
         {
             if (meeting == null)
             {

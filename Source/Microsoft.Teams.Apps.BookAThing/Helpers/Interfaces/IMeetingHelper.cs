@@ -37,6 +37,6 @@ namespace Microsoft.Teams.Apps.BookAThing.Helpers
         /// </summary>
         /// <param name="userFavorites">User favorite rooms from Azure table storage.</param>
         /// <returns>Filtered favorite rooms.</returns>
-        Task<List<UserFavoriteRoomEntity>> FilterFavoriteRoomsAsync(List<UserFavoriteRoomEntity> userFavorites);
+        Task<List<UserFavoriteRoomEntity>> FilterFavoriteRoomsAsync(string token,List<UserFavoriteRoomEntity> userFavorites);
     }
 }

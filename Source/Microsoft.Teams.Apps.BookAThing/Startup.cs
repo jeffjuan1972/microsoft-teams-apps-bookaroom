@@ -29,6 +29,7 @@ namespace Microsoft.Teams.Apps.BookAThing
     using Microsoft.Teams.Apps.BookAThing.Dialogs;
     using Microsoft.Teams.Apps.BookAThing.Helpers;
     using Microsoft.Teams.Apps.BookAThing.Providers.Storage;
+    using Microsoft.Teams.Apps.BookAThing.Service;
     using Newtonsoft.Json.Serialization;
     using Polly;
     using Polly.Extensions.Http;
@@ -94,10 +95,9 @@ namespace Microsoft.Teams.Apps.BookAThing
             services.AddSingleton<UserState>();
             services.AddSingleton<IActivityStorageProvider>(provider => new ActivityStorageProvider(this.Configuration["StorageConnectionString"], (TelemetryClient)provider.GetService(typeof(TelemetryClient))));
             services.AddSingleton<IFavoriteStorageProvider>(provider => new FavoriteStorageProvider(this.Configuration["StorageConnectionString"], (TelemetryClient)provider.GetService(typeof(TelemetryClient))));
-            services.AddSingleton<IRoomCollectionStorageProvider>(provider => new RoomCollectionStorageProvider(this.Configuration["StorageConnectionString"], (TelemetryClient)provider.GetService(typeof(TelemetryClient))));
             services.AddSingleton<IUserConfigurationStorageProvider>(provider => new UserConfigurationStorageProvider(this.Configuration["StorageConnectionString"], (TelemetryClient)provider.GetService(typeof(TelemetryClient))));
-            services.AddSingleton<ISearchService>(provider => new SearchService(this.Configuration["SearchServiceName"], this.Configuration["SearchServiceAdminApiKey"], this.Configuration["SearchIndexingIntervalInMinutes"], this.Configuration["StorageConnectionString"], this.Configuration["SearchServiceQueryApiKey"], (TelemetryClient)provider.GetService(typeof(TelemetryClient))));
             services.AddSingleton<IMeetingHelper, MeetingHelper>();
+
             services.AddSingleton<IGraphApiHelper, GraphApiHelper>();
             services.AddSingleton(new MicrosoftAppCredentials(this.Configuration["MicrosoftAppId"], this.Configuration["MicrosoftAppPassword"]));
 
@@ -106,6 +106,7 @@ namespace Microsoft.Teams.Apps.BookAThing
             services.AddSingleton<TelemetryClient>();
             services.AddSingleton<IMeetingProvider, MeetingProvider>();
             services.AddSingleton<IUserConfigurationProvider, UserConfigurationProvider>();
+            services.AddSingleton<IExchangeService, ExchangeService>();
 
             services.AddSingleton<MemoryCache>();
 
@@ -125,7 +126,6 @@ namespace Microsoft.Teams.Apps.BookAThing
                 (IUserConfigurationStorageProvider)provider.GetService(typeof(IUserConfigurationStorageProvider)),
                 this.Configuration["AppBaseUri"],
                 this.Configuration["APPINSIGHTS_INSTRUMENTATIONKEY"],
-                this.Configuration["TenantId"],
                 (IMeetingHelper)provider.GetService(typeof(IMeetingHelper))));
         }
 

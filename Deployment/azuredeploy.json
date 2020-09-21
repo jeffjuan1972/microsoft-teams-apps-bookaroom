@@ -51,18 +51,9 @@
     "appIconUrl": {
       "type": "string",
       "minLength": 1,
-      "defaultValue": "https://raw.githubusercontent.com/OfficeDev/microsoft-teams-apps-bookaroom/master/Manifest/color.png",
+      "defaultValue": "https://raw.githubusercontent.com/iovex/microsoft-teams-apps-bookaroom/master/Manifest/color.png",
       "metadata": {
         "description": "The link to the icon for the app. It must resolve to a PNG file."
-      }
-    },
-    "tenantId": {
-      "type": "string",
-      "defaultValue": "[subscription().tenantId]",
-      "minLength": 1,
-      "maxLength": 36,
-      "metadata": {
-        "description": "The ID of the tenant to which the app will be deployed."
       }
     },
     "sku": {
@@ -96,23 +87,12 @@
         "description": "Location for all resources."
       }
     },
-    "searchServiceSku": {
-      "type": "string",
-      "allowedValues": [
-        "F (3 indexes)",
-        "B (15 indexes)"
-      ],
-      "defaultValue": "B (15 indexes)",
-      "metadata": {
-        "description": "The pricing tier for the Azure Search service."
-      }
-    },
     "gitRepoUrl": {
       "type": "string",
       "metadata": {
         "description": "The URL to the GitHub repository to deploy."
       },
-      "defaultValue": "https://github.com/OfficeDev/microsoft-teams-apps-bookaroom.git"
+      "defaultValue": "https://github.com/iovex/microsoft-teams-apps-bookaroom.git"
     },
     "gitBranch": {
       "type": "string",
@@ -127,17 +107,9 @@
     "botName": "[parameters('baseResourceName')]",
     "botAppDomain": "[concat(variables('botName'), '.azurewebsites.net')]",
     "botAppUrl": "[concat('https://', variables('botAppDomain'))]",
-    "functionAppName": "[concat(parameters('baseResourceName'), '-function')]",
     "hostingPlanName": "[parameters('baseResourceName')]",
     "storageAccountName": "[variables('uniqueString')]",
     "botAppInsightsName": "[parameters('baseResourceName')]",
-    "azureSearchName": "[concat('search-', variables('uniqueString'))]",
-    "logicAppName": "[concat('logic-', parameters('baseResourceName'))]",
-    "azureSearchSkus": {
-      "F ": "free",
-      "B ": "basic"
-    },
-    "azureSearchSkuValue": "[variables('azureSearchSkus')[toUpper(substring(parameters('searchServiceSku'), 0, 2))]]",
     "sharedSkus": [
       "Free",
       "Shared"
@@ -219,36 +191,12 @@
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')),'2015-05-01-preview').key1)]"
             },
             {
-              "name": "TenantId",
-              "value": "[parameters('tenantId')]"
-            },
-            {
               "name": "AppBaseUri",
               "value": "[concat('https://', variables('botAppDomain'))]"
             },
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
               "value": "[reference(resourceId('Microsoft.Insights/components/', variables('botAppInsightsName')), '2015-05-01').InstrumentationKey]"
-            },
-            {
-              "name": "SearchServiceName",
-              "value": "[variables('azureSearchName')]"
-            },
-            {
-              "name": "SearchServiceAdminApiKey",
-              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
-            },
-            {
-              "name": "SearchServiceQueryApiKey",
-              "value": "[listQueryKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').value[0].key]"
-            },
-            {
-              "name": "AccessCacheExpiryInDays",
-              "value": "5"
-            },
-            {
-              "name": "SearchIndexingIntervalInMinutes",
-              "value": "10"
             },
             {
               "name": "WEBSITE_NODE_DEFAULT_VERSION",
@@ -333,131 +281,6 @@
           "dependsOn": [
             "[concat('Microsoft.BotService/botServices/', variables('botName'))]"
           ]
-        }
-      ]
-    },
-    {
-      "name": "[variables('azureSearchName')]",
-      "type": "Microsoft.Search/searchServices",
-      "apiVersion": "2015-08-19",
-      "location": "[parameters('location')]",
-      "tags": {
-
-      },
-      "properties": {
-        "replicaCount": 1,
-        "partitionCount": 1,
-        "hostingMode": "default"
-      },
-      "sku": {
-        "name": "[toLower(variables('azureSearchSkuValue'))]"
-      }
-    },
-    {
-      "type": "Microsoft.Web/sites",
-      "apiVersion": "2016-08-01",
-      "name": "[variables('functionAppName')]",
-      "location": "[parameters('location')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-        "[resourceId('Microsoft.Insights/components/', variables('botAppInsightsName'))]",
-        "[resourceId('Microsoft.Search/searchServices/', variables('azureSearchName'))]"
-      ],
-      "kind": "functionapp",
-      "properties": {
-        "name": "[variables('functionAppName')]",
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "hostingEnvironment": "",
-        "clientAffinityEnabled": false,
-        "siteConfig": {
-          "alwaysOn": "[not(variables('isSharedPlan'))]",
-          "appSettings": [
-            {
-              "name": "PROJECT",
-              "value": "Source/FunctionApp/Microsoft.Teams.App.BookaThing.Function.csproj"
-            },
-            {
-              "name": "StorageConnectionString",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "ClientId",
-              "value": "[parameters('botClientId')]"
-            },
-            {
-              "name": "ClientSecret",
-              "value": "[parameters('botClientSecret')]"
-            },
-            {
-              "name": "TenantId",
-              "value": "[parameters('tenantId')]"
-            },
-            {
-              "name": "SearchServiceName",
-              "value": "[variables('azureSearchName')]"
-            },
-            {
-              "name": "SearchServiceAdminApiKey",
-              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
-            },
-            {
-              "name": "SearchIndexingIntervalInMinutes",
-              "value": "10"
-            },
-            {
-              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-              "value": "[reference(resourceId('Microsoft.Insights/components/', variables('botAppInsightsName')), '2015-05-01').InstrumentationKey]"
-            },
-            {
-              "name": "SITE_ROLE",
-              "value": "function"
-            },
-            {
-              "name": "AzureWebJobsStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2015-05-01-preview').key1,';')]"
-            },
-            {
-              "name": "AzureWebJobsDashboard",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2015-05-01-preview').key1,';')]"
-            },
-            {
-              "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "~2"
-            },
-            {
-              "name": "FUNCTIONS_WORKER_RUNTIME",
-              "value": "dotnet"
-            },
-            {
-              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTSHARE",
-              "value": "[toLower(variables('functionAppName'))]"
-            },
-            {
-              "name": "WEBSITE_NODE_DEFAULT_VERSION",
-              "value": "10.14.1"
-            }
-          ]
-        }
-      },
-      "resources": [
-        {
-          "type": "sourcecontrols",
-          "apiVersion": "2015-08-01",
-          "name": "web",
-          "dependsOn": [
-            "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
-          ],
-          "properties": {
-            "RepoUrl": "[parameters('gitRepoUrl')]",
-            "branch": "[parameters('gitBranch')]",
-            "IsManualIntegration": true
-          },
-          "condition": "[not(empty(parameters('gitRepoUrl')))]"
         }
       ]
     }

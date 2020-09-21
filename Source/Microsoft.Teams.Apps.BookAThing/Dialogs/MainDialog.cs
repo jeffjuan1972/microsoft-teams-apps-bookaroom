@@ -248,6 +248,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Dialogs
         private async Task ShowRoomsAsync(WaterfallStepContext stepContext, TokenResponse tokenResponse, bool refresh)
         {
             var activity = stepContext.Context.Activity;
+            var userToken = await this.tokenHelper.GetUserTokenAsync(activity.From.Id).ConfigureAwait(false);
             var startUTCTime = DateTime.UtcNow.AddMinutes(Constants.DurationGapFromNow.Minutes);
             var endUTCTime = startUTCTime.AddMinutes(Constants.DefaultMeetingDuration.Minutes);
 
@@ -272,7 +273,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Dialogs
                 }
             }
 
-            userFavorites = await this.meetingHelper.FilterFavoriteRoomsAsync(userFavorites?.ToList()).ConfigureAwait(false);
+            userFavorites = await this.meetingHelper.FilterFavoriteRoomsAsync(userToken, userFavorites?.ToList()).ConfigureAwait(false);
             if (userFavorites?.Count > 0)
             {
                 // Get schedule for favorite rooms.
@@ -546,7 +547,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Dialogs
             var startTime = TimeZoneInfo.ConvertTimeFromUtc(startUTCTime, TimeZoneInfo.FindSystemTimeZoneById(userConfiguration.WindowsTimezone));
             var endTime = startTime.AddMinutes(Constants.DefaultMeetingDuration.Minutes);
 
-            rooms = await this.meetingHelper.FilterFavoriteRoomsAsync(rooms?.ToList()).ConfigureAwait(false);
+            rooms = await this.meetingHelper.FilterFavoriteRoomsAsync(userToken, rooms?.ToList()).ConfigureAwait(false);
             if (rooms?.Count > 0)
             {
                 var roomsScheduleResponse = await this.GetRoomsScheduleAsync(startTime, endTime, localTimeZone: userConfiguration.IanaTimezone, rooms, userToken).ConfigureAwait(false);

@@ -18,6 +18,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Helpers
     using Microsoft.Teams.Apps.BookAThing.Common.Providers.Storage;
     using Microsoft.Teams.Apps.BookAThing.Models;
     using Microsoft.Teams.Apps.BookAThing.Resources;
+    using Microsoft.Teams.Apps.BookAThing.Service;
 
     /// <summary>
     /// Helper class which exposes methods required for meeting creation.
@@ -34,10 +35,8 @@ namespace Microsoft.Teams.Apps.BookAThing.Helpers
         /// </summary>
         private readonly IMeetingProvider meetingProvider;
 
-        /// <summary>
-        /// Storage provider to perform insert, update and delete operations on RoomCollection table.
-        /// </summary>
-        private readonly IRoomCollectionStorageProvider roomCollectionStorageProvider;
+        
+        private readonly IExchangeService exchangeService;
 
         /// <summary>
         /// Memory cache to store rooms.
@@ -51,11 +50,11 @@ namespace Microsoft.Teams.Apps.BookAThing.Helpers
         /// <param name="userConfigurationProvider">Provider for getting user specific configuration.</param>
         /// <param name="roomCollectionStorageProvider">Storage provider to perform fetch operation on RoomCollection table.</param>
         /// <param name="memoryCache">Memory cache to store rooms.</param>
-        public MeetingHelper(IMeetingProvider meetingProvider, IRoomCollectionStorageProvider roomCollectionStorageProvider, IMemoryCache memoryCache)
+        public MeetingHelper(IMeetingProvider meetingProvider, IMemoryCache memoryCache,IExchangeService exchangeService)
         {
             this.meetingProvider = meetingProvider;
-            this.roomCollectionStorageProvider = roomCollectionStorageProvider;
             this.memoryCache = memoryCache;
+            this.exchangeService = exchangeService;
         }
 
         /// <summary>
@@ -146,7 +145,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Helpers
         /// </summary>
         /// <param name="userFavorites">User favorite rooms from Azure table storage.</param>
         /// <returns>Filtered favorite rooms.</returns>
-        public async Task<List<UserFavoriteRoomEntity>> FilterFavoriteRoomsAsync(List<UserFavoriteRoomEntity> userFavorites)
+        public async Task<List<UserFavoriteRoomEntity>> FilterFavoriteRoomsAsync(string token,List<UserFavoriteRoomEntity> userFavorites)
         {
             // Get cached rooms to check deleted and updated rooms by sync service.
             List<MeetingRoomEntity> cachedRooms = new List<MeetingRoomEntity>();
@@ -156,7 +155,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Helpers
                 this.memoryCache.TryGetValue(buildingEmailId, out cachedRoomsPerBuilding);
                 if (cachedRoomsPerBuilding == null || cachedRoomsPerBuilding.Count() == 0)
                 {
-                    cachedRoomsPerBuilding = await this.roomCollectionStorageProvider.GetAsync(buildingEmailId).ConfigureAwait(false);
+                    cachedRoomsPerBuilding = await exchangeService.FindRooms(token,buildingEmailId).ConfigureAwait(false);
                     this.memoryCache.Set(buildingEmailId, cachedRoomsPerBuilding, this.memoryCacheExpirationDuration);
                 }
 
@@ -167,7 +166,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Helpers
             var filteredFavoriteRooms = new List<UserFavoriteRoomEntity>();
             foreach (var favoriteRoom in userFavorites)
             {
-                var searchedRoom = cachedRooms.FirstOrDefault(room => room.RoomEmail == favoriteRoom.RoomEmail && room.BuildingEmail == favoriteRoom.BuildingEmail);
+                var searchedRoom = cachedRooms.FirstOrDefault(room => room.RoomEmail == favoriteRoom.RoomEmail);
                 if (searchedRoom?.IsDeleted == false)
                 {
                     favoriteRoom.RoomName = searchedRoom.RoomName;

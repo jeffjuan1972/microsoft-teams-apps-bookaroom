@@ -65,11 +65,6 @@ namespace Microsoft.Teams.Apps.BookAThing.Bots
         private readonly string instrumentationKey;
 
         /// <summary>
-        /// Valid tenant id for which bot will operate.
-        /// </summary>
-        private readonly string tenantId;
-
-        /// <summary>
         /// Generating and validating JWT token.
         /// </summary>
         private readonly ITokenHelper tokenHelper;
@@ -120,7 +115,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Bots
         /// <param name="instrumentationKey">Instrumentation key for application insights logging.</param>
         /// <param name="tenantId">Valid tenant id for which bot will operate.</param>
         /// <param name="meetingHelper">Helper class which exposes methods required for meeting creation.</param>
-        public BookAMeetingBot(ConversationState conversationState, UserState userState, T dialog, ITokenHelper tokenHelper, IActivityStorageProvider activityStorageProvider, IFavoriteStorageProvider favoriteStorageProvider, IMeetingProvider meetingProvider, TelemetryClient telemetryClient, IUserConfigurationStorageProvider userConfigurationStorageProvider, string appBaseUri, string instrumentationKey, string tenantId, IMeetingHelper meetingHelper)
+        public BookAMeetingBot(ConversationState conversationState, UserState userState, T dialog, ITokenHelper tokenHelper, IActivityStorageProvider activityStorageProvider, IFavoriteStorageProvider favoriteStorageProvider, IMeetingProvider meetingProvider, TelemetryClient telemetryClient, IUserConfigurationStorageProvider userConfigurationStorageProvider, string appBaseUri, string instrumentationKey,IMeetingHelper meetingHelper)
         {
             this.conversationState = conversationState;
             this.userState = userState;
@@ -133,7 +128,6 @@ namespace Microsoft.Teams.Apps.BookAThing.Bots
             this.userConfigurationStorageProvider = userConfigurationStorageProvider;
             this.appBaseUri = appBaseUri;
             this.instrumentationKey = instrumentationKey;
-            this.tenantId = tenantId;
             this.meetingHelper = meetingHelper;
         }
 
@@ -434,7 +428,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Bots
             }
 
             var rooms = await this.favoriteStorageProvider.GetAsync(activity.From.AadObjectId).ConfigureAwait(false);
-            rooms = await this.meetingHelper.FilterFavoriteRoomsAsync(rooms?.ToList());
+            rooms = await this.meetingHelper.FilterFavoriteRoomsAsync(userAADToken,rooms?.ToList());
             var startUTCTime = DateTime.UtcNow.AddMinutes(Constants.DurationGapFromNow.Minutes);
             var startTime = TimeZoneInfo.ConvertTimeFromUtc(startUTCTime, TimeZoneInfo.FindSystemTimeZoneById(userConfiguration.WindowsTimezone));
             var endTime = startTime.AddMinutes(Constants.DefaultMeetingDuration.Minutes);
@@ -524,7 +518,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Bots
         /// <returns>Boolean indicating whether tenant is valid.</returns>
         private bool IsActivityFromExpectedTenant(ITurnContext turnContext)
         {
-            return turnContext.Activity.Conversation.TenantId.Equals(this.tenantId, StringComparison.OrdinalIgnoreCase);
+            return true;
         }
 
         /// <summary>

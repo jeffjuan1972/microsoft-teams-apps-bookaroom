@@ -348,3 +348,8 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+Source/Microsoft.Teams.Apps.BookAThing/appsettings.json
+Source/Microsoft.Teams.Apps.BookAThing/.vscode/launch.json
+Source/Microsoft.Teams.Apps.BookAThing/.vscode/tasks.json
+global.json
+.vscode/launch.json
