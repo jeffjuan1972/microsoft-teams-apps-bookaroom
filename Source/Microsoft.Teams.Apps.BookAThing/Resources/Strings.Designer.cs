@@ -486,9 +486,9 @@ namespace Microsoft.Teams.Apps.BookAThing.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Share.
         /// </summary>
-        public static string Share {
+        public static string ShareMeetingRoom {
             get {
-                return ResourceManager.GetString("Share", resourceCulture);
+                return ResourceManager.GetString("ShareMeetingRoom", resourceCulture);
             }
         }
         

@@ -234,7 +234,7 @@
     <value>Search</value>
     <comment>Search room or building</comment>
   </data>
-  <data name="Share" xml:space="preserve">
+  <data name="ShareMeetingRoom" xml:space="preserve">
     <value>Share</value>
     <comment>Share button text</comment>
   </data>

@@ -73,5 +73,7 @@ namespace Microsoft.Teams.Apps.BookAThing
         /// Command from task module after successful meeting creation.
         /// </summary>
         public const string MeetingFromTaskModule = "MEETING FROM TASK MODULE";
+
+        public const string ShareMeetingRoom = "SHARE MEETING ROOM";
     }
 }

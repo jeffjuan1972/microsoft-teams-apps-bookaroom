@@ -18,4 +18,13 @@ namespace Microsoft.Teams.Apps.BookAThing.Models
         [JsonProperty("msteams")]
         public CardAction Msteams { get; set; }
     }
+
+    public class AdaptiveSubmitActionDataForShare : AdaptiveSubmitActionData
+    {
+        [JsonProperty("text")]
+        public string Text;
+
+        [JsonProperty("url")]
+        public string Url;
+    }
 }

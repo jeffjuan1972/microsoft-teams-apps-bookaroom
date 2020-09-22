@@ -12,6 +12,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Cards
     using Microsoft.Teams.Apps.BookAThing.Models;
     using Microsoft.Teams.Apps.BookAThing.Resources;
     using Newtonsoft.Json;
+    using System.Web;
 
     /// <summary>
     /// Class having method to get success attachment once meeting creation is successful.
@@ -84,7 +85,19 @@ namespace Microsoft.Teams.Apps.BookAThing.Cards
                 card.Actions = new List<AdaptiveAction>
                 {
                     cancelMeetingAction,
-                    new AdaptiveOpenUrlAction { Title = Strings.Share, Url = new Uri(meeting.WebLink) },
+                    new AdaptiveSubmitAction
+                    {
+                        Title = Strings.ShareMeetingRoom,
+                        Data = new AdaptiveSubmitActionDataForShare
+                        {
+                            Text = BotCommands.ShareMeetingRoom,
+                            Url = meeting.WebLink,
+                            Msteams = new CardAction
+                            {
+                                Type = "task/fetch"
+                            }
+                        }
+                    }
                 };
             }
             else
@@ -111,7 +124,19 @@ namespace Microsoft.Teams.Apps.BookAThing.Cards
                             },
                         },
                     },
-                    new AdaptiveOpenUrlAction { Title = Strings.Share, Url = new Uri(meeting.WebLink) },
+                    new AdaptiveSubmitAction
+                    {
+                        Title = Strings.ShareMeetingRoom,
+                        Data = new AdaptiveSubmitActionDataForShare
+                        {
+                            Text = BotCommands.ShareMeetingRoom,
+                            Url = meeting.WebLink,
+                            Msteams = new CardAction
+                            {
+                                Type = "task/fetch"
+                            }
+                        }
+                    }
                 };
             }
 

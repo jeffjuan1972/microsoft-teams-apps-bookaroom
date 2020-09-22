@@ -115,7 +115,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Bots
         /// <param name="instrumentationKey">Instrumentation key for application insights logging.</param>
         /// <param name="tenantId">Valid tenant id for which bot will operate.</param>
         /// <param name="meetingHelper">Helper class which exposes methods required for meeting creation.</param>
-        public BookAMeetingBot(ConversationState conversationState, UserState userState, T dialog, ITokenHelper tokenHelper, IActivityStorageProvider activityStorageProvider, IFavoriteStorageProvider favoriteStorageProvider, IMeetingProvider meetingProvider, TelemetryClient telemetryClient, IUserConfigurationStorageProvider userConfigurationStorageProvider, string appBaseUri, string instrumentationKey,IMeetingHelper meetingHelper)
+        public BookAMeetingBot(ConversationState conversationState, UserState userState, T dialog, ITokenHelper tokenHelper, IActivityStorageProvider activityStorageProvider, IFavoriteStorageProvider favoriteStorageProvider, IMeetingProvider meetingProvider, TelemetryClient telemetryClient, IUserConfigurationStorageProvider userConfigurationStorageProvider, string appBaseUri, string instrumentationKey, IMeetingHelper meetingHelper)
         {
             this.conversationState = conversationState;
             this.userState = userState;
@@ -256,8 +256,19 @@ namespace Microsoft.Teams.Apps.BookAThing.Bots
                 return default;
             }
 
-            var postedValues = JsonConvert.DeserializeObject<MeetingViewModel>(JObject.Parse(taskModuleRequest.Data.ToString()).SelectToken("data").ToString());
-            var command = postedValues.Text;
+            MeetingViewModel postedValues = null;
+            var command = "";
+            try
+            {
+                postedValues = JsonConvert.DeserializeObject<MeetingViewModel>(JObject.Parse(taskModuleRequest.Data.ToString()).SelectToken("data").ToString());
+                command = postedValues.Text;
+            }
+            catch (Exception e)
+            {
+                command = JObject.Parse(taskModuleRequest.Data.ToString()).SelectToken("text").ToString();
+            }
+
+
             var token = this.tokenHelper.GenerateAPIAuthToken(activity.From.AadObjectId, activity.ServiceUrl, activity.From.Id, jwtExpiryMinutes: 60);
             string activityReferenceId = string.Empty;
 
@@ -281,6 +292,10 @@ namespace Microsoft.Teams.Apps.BookAThing.Bots
                 case BotCommands.BookAMeetingNow:
                     activityReferenceId = postedValues.ActivityReferenceId;
                     return this.GetTaskModuleResponse(string.Format(CultureInfo.InvariantCulture, "{0}/Meeting/OtherRoomNow?telemetry={1}&token={2}&replyTo={3}", this.appBaseUri, this.instrumentationKey, token, activityReferenceId), Strings.AnotherRoomTaskModuleSubtitle);
+
+                case BotCommands.ShareMeetingRoom:
+                    var url = JObject.Parse(taskModuleRequest.Data.ToString()).SelectToken("url").ToString();
+                    return this.GetTaskModuleResponse(url, Strings.ShareMeetingRoom,1130,800);
 
                 default:
                     var reply = MessageFactory.Text(Strings.CommandNotRecognized.Replace("{command}", command, StringComparison.OrdinalIgnoreCase));
@@ -428,7 +443,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Bots
             }
 
             var rooms = await this.favoriteStorageProvider.GetAsync(activity.From.AadObjectId).ConfigureAwait(false);
-            rooms = await this.meetingHelper.FilterFavoriteRoomsAsync(userAADToken,rooms?.ToList());
+            rooms = await this.meetingHelper.FilterFavoriteRoomsAsync(userAADToken, rooms?.ToList());
             var startUTCTime = DateTime.UtcNow.AddMinutes(Constants.DurationGapFromNow.Minutes);
             var startTime = TimeZoneInfo.ConvertTimeFromUtc(startUTCTime, TimeZoneInfo.FindSystemTimeZoneById(userConfiguration.WindowsTimezone));
             var endTime = startTime.AddMinutes(Constants.DefaultMeetingDuration.Minutes);
@@ -527,7 +542,7 @@ namespace Microsoft.Teams.Apps.BookAThing.Bots
         /// <param name="url">Task module URL.</param>
         /// <param name="title">Title for task module.</param>
         /// <returns>TaskModuleResponse object.</returns>
-        private TaskModuleResponse GetTaskModuleResponse(string url, string title)
+        private TaskModuleResponse GetTaskModuleResponse(string url, string title,int width =600,int height = 460)
         {
             return new TaskModuleResponse
             {
@@ -537,8 +552,8 @@ namespace Microsoft.Teams.Apps.BookAThing.Bots
                     Value = new TaskModuleTaskInfo()
                     {
                         Url = url,
-                        Height = 460,
-                        Width = 600,
+                        Height = height,
+                        Width = width,
                         Title = title,
                     },
                 },
