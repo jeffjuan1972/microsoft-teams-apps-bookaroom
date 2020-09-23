@@ -208,7 +208,6 @@
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-        "[resourceId('Microsoft.Search/searchServices/', variables('azureSearchName'))]",
         "[resourceId('Microsoft.Insights/components/', variables('botAppInsightsName'))]"
       ],
       "resources": [
@@ -259,8 +258,7 @@
         "developerAppInsightKey": "[reference(resourceId('Microsoft.Insights/components', variables('botAppInsightsName')), '2015-05-01').InstrumentationKey]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', variables('botName'))]",
-        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+        "[resourceId('Microsoft.Web/sites', variables('botName'))]"
       ],
       "resources": [
         {
